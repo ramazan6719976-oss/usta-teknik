@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: usta-teknik
+    runtime: node
+    plan: free
+    buildCommand: "echo ready"
+    startCommand: "node server.js"
+    envVars:
+      - key: SHOP_PIN
+        value: usta2026
+      - key: NODE_VERSION
+        value: "20"
