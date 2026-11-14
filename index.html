@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Usta Teknik · Ortak Panel</title>
+<style>
+:root {
+  --bg:#f4f1ea; --surface:#fffdf8; --line:#d9d2c4; --ink:#1a2420;
+  --muted:#6b655c; --primary:#1d4a42; --accent:#c45c26; --accent-fg:#fff8f3;
+}
+*{box-sizing:border-box} body{margin:0;font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.4}
+button,input,select,textarea{font:inherit} .app{max-width:1100px;margin:0 auto;padding:12px 12px 96px}
+.top{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:12px}
+.brand{display:flex;gap:12px;align-items:center;min-width:0}
+.brand img{height:56px;width:auto;border-radius:8px;background:#000}
+.brand h1{margin:0;font-size:1.2rem}.brand p{margin:2px 0 0;color:var(--muted);font-size:.85rem}
+.sync{font-size:.85rem;color:var(--muted)}
+.sync.ok{color:#1d4a42}.sync.err{color:#8b1e1e}
+.nav{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
+.nav button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:10px 14px;white-space:nowrap;cursor:pointer}
+.nav button.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+.grid2{display:grid;gap:10px;grid-template-columns:1fr 1fr}
+@media(max-width:700px){.grid2{grid-template-columns:1fr}}
+.field{width:100%;border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:#fff}
+label.block{display:grid;gap:4px;font-size:.9rem}
+label.block span{color:var(--muted);font-weight:600}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{border:0;border-radius:8px;padding:10px 14px;cursor:pointer;background:var(--primary);color:#fff;font-weight:600}
+.btn.accent{background:var(--accent);color:var(--accent-fg)}
+.btn.line{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.btn.quiet{background:transparent;color:var(--muted);border:0;text-decoration:underline}
+.muted{color:var(--muted)}.money{font-variant-numeric:tabular-nums;font-weight:700}
+.list{display:grid;gap:10px}.item h3{margin:0 0 4px;font-size:1.05rem}.item .meta{color:var(--muted);font-size:.85rem}
+.badge{display:inline-block;border-radius:999px;padding:4px 10px;font-size:.75rem;background:#e8efe9;color:var(--primary);font-weight:600}
+.badge.warn{background:#f8e5d8;color:var(--accent)}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th,td{border:1px solid var(--line);padding:8px;text-align:left} th{background:#f0ebe1}.right{text-align:right}
+.empty{border:1px dashed var(--line);border-radius:12px;padding:28px;text-align:center;color:var(--muted)}
+.login{max-width:420px;margin:40px auto;padding:12px}
+.a4{background:#fff;color:#111;border:1px solid #111;padding:10px;max-width:210mm;margin:0 auto}
+.a4 img.logo{display:block;width:100%;max-height:42mm;object-fit:contain;background:#000}
+.a4-head,.a4-box,.a4-signs>div{border:1px solid #111}
+.a4-head{display:flex;justify-content:space-between;margin-top:6px}
+.a4-head>*{padding:6px 8px}.a4-head h2{margin:0;font-size:14px}
+.a4-meta{text-align:right;border-left:1px solid #111;min-width:110px}
+.a4-parties{display:grid;grid-template-columns:1fr 1fr;margin-top:6px}
+.a4-parties>div{border:1px solid #111;padding:6px 8px}.a4-parties>div+div{border-left:0}
+.a4 table{margin-top:6px}.a4 th,.a4 td{border-color:#111;font-size:11px}
+.a4-total{width:180px;margin-left:auto;margin-top:6px;border:1px solid #111}
+.a4-total p{display:flex;justify-content:space-between;margin:0;padding:4px 8px;border-bottom:1px solid #111}
+.a4-total p:last-child{border:0;font-weight:700;background:#f2f2f2}
+.a4-note{border:1px solid #111;margin-top:6px;padding:6px 8px;font-size:11px}
+.a4-signs{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+.a4-signs>div{min-height:50px;padding:6px;font-size:11px;font-weight:700}
+.a4-foot{text-align:center;font-size:10px;margin-top:8px;border-top:1px solid #111;padding-top:6px}
+.sheet-actions{display:flex;gap:8px;justify-content:flex-end;margin-bottom:10px}
+@media print{
+  body *{visibility:hidden} #print-area,#print-area *{visibility:visible}
+  #print-area{position:absolute;left:0;top:0;width:100%}
+  .sheet-actions,.nav,.top,.no-print,#login-wrap{display:none!important}
+  @page{size:A4;margin:8mm}
+}
+</style>
+</head>
+<body>
+<div id="login-wrap" class="login">
+  <div class="card">
+    <div class="brand" style="margin-bottom:14px">
+      <img src="logo.png" alt="Usta Teknik" />
+      <div>
+        <h1>Usta Teknik</h1>
+        <p>Ortak panel girişi</p>
+      </div>
+    </div>
+    <p class="muted">Aynı PIN ile tüm telefon ve bilgisayarlar ortak veriyi görür.</p>
+    <label class="block"><span>Atölye PIN</span><input class="field" id="pin-input" type="password" value="usta2026" autocomplete="current-password"></label>
+    <div class="row" style="margin-top:12px">
+      <button class="btn accent" id="pin-go" type="button">Giriş</button>
+      <span class="muted" id="pin-msg"></span>
+    </div>
+  </div>
+</div>
+
+<div class="app" id="app" hidden>
+  <header class="top">
+    <div class="brand">
+      <img src="logo.png" alt="Usta Teknik" />
+      <div>
+        <h1>Usta Teknik</h1>
+        <p>0543 307 40 18 · 0530 609 99 08</p>
+      </div>
+    </div>
+    <div class="sync" id="sync-status">Bağlanıyor…</div>
+  </header>
+  <nav class="nav" id="nav"></nav>
+  <main id="main"></main>
+</div>
+
+<script>
+const PHONES = ["0543 307 40 18", "0530 609 99 08"];
+const DIVISIONS = [
+  { id: "elektronik", label: "Elektronik" },
+  { id: "beyaz", label: "Beyaz eşya" },
+  { id: "guvenlik", label: "Güvenlik" },
+  { id: "canak", label: "Çanak anten" },
+];
+const STATUSES = [
+  { id: "kabul", label: "Kabul" },
+  { id: "tamir", label: "Tamir" },
+  { id: "parca", label: "Parça bekliyor" },
+  { id: "teslim", label: "Teslim" },
+];
+const VIEWS = [
+  { id: "ozet", label: "Özet" },
+  { id: "parca", label: "Parça" },
+  { id: "servis", label: "Servis" },
+  { id: "musteri", label: "Müşteri" },
+  { id: "kasa", label: "Kasa" },
+  { id: "teklif", label: "Teklif" },
+];
+
+let pin = localStorage.getItem("usta-pin") || "";
+let state = empty();
+let view = "ozet";
+let armedDelete = null;
+let formJobId = null;
+let formQuoteId = null;
+let saving = false;
+let dirty = false;
+let lastUpdatedAt = null;
+
+function empty() {
+  return { parts: [], jobs: [], customers: [], debts: [], entries: [], quotes: [], updatedAt: null };
+}
+function uid() { return crypto.randomUUID(); }
+function money(n) {
+  return new Intl.NumberFormat("tr-TR", { style: "currency", currency: "TRY", maximumFractionDigits: 0 }).format(Math.round(n || 0));
+}
+function day(iso) {
+  try { return new Date(iso).toLocaleDateString("tr-TR"); } catch { return ""; }
+}
+function num(v) {
+  const n = Number(String(v).replace(",", "."));
+  return Number.isFinite(n) ? n : 0;
+}
+function escapeHtml(s) {
+  return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+function el(html) {
+  const t = document.createElement("template");
+  t.innerHTML = html.trim();
+  return t.content.firstElementChild;
+}
+function setSync(text, cls) {
+  const n = document.getElementById("sync-status");
+  if (!n) return;
+  n.textContent = text;
+  n.className = "sync " + (cls || "");
+}
+
+async function api(method, body) {
+  const res = await fetch("/api/state", {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      "X-Shop-Pin": pin,
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || "Sunucu hatası");
+  return data;
+}
+
+async function pull() {
+  const data = await api("GET");
+  state = {
+    parts: data.parts || [],
+    jobs: data.jobs || [],
+    customers: data.customers || [],
+    debts: data.debts || [],
+    entries: data.entries || [],
+    quotes: data.quotes || [],
+    updatedAt: data.updatedAt || null,
+  };
+  lastUpdatedAt = state.updatedAt;
+  dirty = false;
+  setSync("Ortak · güncel", "ok");
+}
+
+async function push() {
+  if (saving) return;
+  saving = true;
+  setSync("Kaydediliyor…", "");
+  try {
+    const saved = await api("PUT", {
+      parts: state.parts,
+      jobs: state.jobs,
+      customers: state.customers,
+      debts: state.debts,
+      entries: state.entries,
+      quotes: state.quotes,
+    });
+    lastUpdatedAt = saved.updatedAt;
+    state.updatedAt = saved.updatedAt;
+    dirty = false;
+    setSync("Ortak · kaydedildi", "ok");
+  } catch (err) {
+    setSync(err.message || "Kayıt hatası", "err");
+  } finally {
+    saving = false;
+  }
+}
+
+function touch() {
+  dirty = true;
+  setSync("Kaydedilmedi…", "");
+  clearTimeout(touch._t);
+  touch._t = setTimeout(() => { push(); }, 400);
+}
+
+function jobTotal(job) {
+  const gross = (job.fee || 0) + (job.lines || []).reduce((s, l) => s + l.price * l.qty, 0);
+  const discount = Math.min(Math.max(0, job.discount || 0), gross);
+  return gross - discount;
+}
+function postJobCash(job) {
+  state.entries = state.entries.filter(e => e.id !== job.cashId);
+  const total = jobTotal(job);
+  if (total <= 0) { job.cashId = undefined; return; }
+  const id = job.cashId || uid();
+  job.cashId = id;
+  state.entries.unshift({
+    id, kind: "gelir", category: "Servis",
+    title: [job.no, job.customer, job.work].filter(Boolean).join(" · "),
+    amount: total, at: new Date().toISOString(),
+  });
+}
+function nextJobNo() {
+  let max = 1000;
+  for (const j of state.jobs) {
+    const n = Number(String(j.no).replace(/\D/g, ""));
+    if (Number.isFinite(n)) max = Math.max(max, n);
+  }
+  return "SF-" + (max + 1);
+}
+function nextQuoteNo() {
+  let max = 2400;
+  for (const q of state.quotes) {
+    const n = Number(String(q.no).replace(/\D/g, ""));
+    if (Number.isFinite(n)) max = Math.max(max, n);
+  }
+  return "TK-" + (max + 1);
+}
+function rememberCustomer(name, phone, address) {
+  if (!name) return;
+  const known = state.customers.find(c =>
+    (phone && c.phone.replace(/\D/g, "") === phone.replace(/\D/g, "")) ||
+    c.name.toLocaleLowerCase("tr-TR") === name.toLocaleLowerCase("tr-TR")
+  );
+  if (known) {
+    known.name = name;
+    if (phone) known.phone = phone;
+    if (address) known.address = address;
+  } else {
+    state.customers.unshift({ id: uid(), name, phone, address });
+  }
+}
+
+function render() {
+  const nav = document.getElementById("nav");
+  nav.innerHTML = "";
+  for (const v of VIEWS) {
+    const b = document.createElement("button");
+    b.textContent = v.label;
+    if (v.id === view) b.classList.add("active");
+    b.onclick = () => { view = v.id; formJobId = null; formQuoteId = null; armedDelete = null; render(); };
+    nav.appendChild(b);
+  }
+  const main = document.getElementById("main");
+  main.innerHTML = "";
+  if (view === "ozet") main.appendChild(viewOzet());
+  if (view === "parca") main.appendChild(viewParca());
+  if (view === "servis") main.appendChild(viewServis());
+  if (view === "musteri") main.appendChild(viewMusteri());
+  if (view === "kasa") main.appendChild(viewKasa());
+  if (view === "teklif") main.appendChild(viewTeklif());
+}
+
+function viewOzet() {
+  const open = state.jobs.filter(j => j.status !== "teslim").length;
+  const stock = state.parts.reduce((s, p) => s + (p.stock || 0), 0);
+  const gelir = state.entries.filter(e => e.kind === "gelir").reduce((s, e) => s + e.amount, 0);
+  const gider = state.entries.filter(e => e.kind === "gider").reduce((s, e) => s + e.amount, 0);
+  const debt = state.debts.filter(d => !d.paid).reduce((s, d) => s + d.amount, 0);
+  return el(`<div>
+    <div class="grid2">
+      <div class="card"><div class="muted">Açık servis</div><div style="font-size:1.6rem;font-weight:700">${open}</div></div>
+      <div class="card"><div class="muted">Parça stok</div><div style="font-size:1.6rem;font-weight:700">${stock}</div></div>
+      <div class="card"><div class="muted">Kasa bakiyesi</div><div class="money" style="font-size:1.4rem">${money(gelir - gider)}</div></div>
+      <div class="card"><div class="muted">Açık borç</div><div class="money" style="font-size:1.4rem">${money(debt)}</div></div>
+    </div>
+    <div class="card"><p class="muted" style="margin:0">Bu panel ortak: aynı PIN ile giren her cihaz aynı kayıtları görür ve günceller.</p></div>
+  </div>`);
+}
+
+function viewParca() {
+  const root = el(`<div>
+    <div class="card"><h2 style="margin:0 0 10px">Yeni parça</h2><form id="part-form" class="grid2"></form></div>
+    <div class="list" id="part-list"></div>
+  </div>`);
+  const form = root.querySelector("#part-form");
+  form.innerHTML = `
+    <label class="block"><span>Ad</span><input class="field" name="name" required></label>
+    <label class="block"><span>Kod</span><input class="field" name="sku"></label>
+    <label class="block"><span>Bölüm</span><select class="field" name="division">${DIVISIONS.map(d=>`<option value="${d.id}">${d.label}</option>`).join("")}</select></label>
+    <label class="block"><span>Stok</span><input class="field" name="stock" inputmode="numeric" value="0"></label>
+    <label class="block"><span>Fiyat (TL)</span><input class="field" name="price" inputmode="numeric" value="0"></label>
+    <div class="row"><button class="btn accent" type="submit">Parça ekle</button></div>`;
+  form.onsubmit = (e) => {
+    e.preventDefault();
+    const fd = new FormData(form);
+    state.parts.unshift({
+      id: uid(), name: String(fd.get("name")||"").trim(), sku: String(fd.get("sku")||"").trim(),
+      division: String(fd.get("division")), stock: Math.max(0, Math.round(num(fd.get("stock")))),
+      price: Math.max(0, Math.round(num(fd.get("price")))),
+    });
+    touch(); render();
+  };
+  const list = root.querySelector("#part-list");
+  if (!state.parts.length) list.appendChild(el(`<div class="empty">Henüz parça yok.</div>`));
+  for (const p of state.parts) {
+    const div = DIVISIONS.find(d => d.id === p.division)?.label || p.division;
+    const item = el(`<div class="card item">
+      <div class="row" style="justify-content:space-between">
+        <div><h3>${escapeHtml(p.name)}</h3><div class="meta">${escapeHtml(p.sku||"—")} · ${div} · Stok ${p.stock}</div></div>
+        <div class="money">${money(p.price)}</div>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <button class="btn line" data-in>+1</button>
+        <button class="btn line" data-out>-1</button>
+        <button class="btn quiet" data-del>${armedDelete===p.id?"Silinsin mi?":"Sil"}</button>
+      </div>
+    </div>`);
+    item.querySelector("[data-in]").onclick = () => { p.stock += 1; touch(); render(); };
+    item.querySelector("[data-out]").onclick = () => { p.stock = Math.max(0, p.stock - 1); touch(); render(); };
+    item.querySelector("[data-del]").onclick = () => {
+      if (armedDelete !== p.id) { armedDelete = p.id; render(); return; }
+      state.parts = state.parts.filter(x => x.id !== p.id); armedDelete = null; touch(); render();
+    };
+    list.appendChild(item);
+  }
+  return root;
+}
+
+function viewServis() {
+  if (formJobId) {
+    const job = state.jobs.find(j => j.id === formJobId);
+    if (job) return serviceForm(job);
+  }
+  const root = el(`<div>
+    <div class="card"><h2 style="margin:0 0 10px">Yeni servis fişi</h2><form id="job-form" class="grid2"></form></div>
+    <div class="list" id="job-list"></div>
+  </div>`);
+  const form = root.querySelector("#job-form");
+  form.innerHTML = `
+    <label class="block"><span>Müşteri</span><input class="field" name="customer" list="custs" required></label>
+    <label class="block"><span>Telefon</span><input class="field" name="phone" inputmode="tel"></label>
+    <label class="block" style="grid-column:1/-1"><span>Adres</span><input class="field" name="address"></label>
+    <label class="block"><span>Bölüm</span><select class="field" name="division">${DIVISIONS.map(d=>`<option value="${d.id}">${d.label}</option>`).join("")}</select></label>
+    <label class="block"><span>Cihaz</span><input class="field" name="device" required></label>
+    <label class="block"><span>Marka</span><input class="field" name="brand"></label>
+    <label class="block"><span>Model</span><input class="field" name="model"></label>
+    <label class="block" style="grid-column:1/-1"><span>Arıza</span><input class="field" name="fault" required></label>
+    <label class="block"><span>İşçilik (TL)</span><input class="field" name="fee" inputmode="numeric" value="0"></label>
+    <div class="row"><button class="btn accent" type="submit">Fiş aç</button></div>
+    <datalist id="custs">${state.customers.map(c=>`<option value="${escapeHtml(c.name)}"></option>`).join("")}</datalist>`;
+  form.onsubmit = (e) => {
+    e.preventDefault();
+    const fd = new FormData(form);
+    const customer = String(fd.get("customer")||"").trim();
+    const phone = String(fd.get("phone")||"").trim();
+    const address = String(fd.get("address")||"").trim();
+    const job = {
+      id: uid(), no: nextJobNo(), customer, phone, address,
+      division: String(fd.get("division")), device: String(fd.get("device")||"").trim(),
+      brand: String(fd.get("brand")||"").trim(), model: String(fd.get("model")||"").trim(),
+      fault: String(fd.get("fault")||"").trim(), serial: "", accessories: "", work: "",
+      fee: Math.max(0, Math.round(num(fd.get("fee")))), discount: 0, lines: [],
+      status: "kabul", openedAt: new Date().toISOString(),
+    };
+    rememberCustomer(customer, phone, address);
+    postJobCash(job);
+    state.jobs.unshift(job);
+    touch(); render();
+  };
+  const list = root.querySelector("#job-list");
+  if (!state.jobs.length) list.appendChild(el(`<div class="empty">Henüz servis fişi yok.</div>`));
+  for (const job of state.jobs) {
+    const st = STATUSES.find(s => s.id === job.status)?.label || job.status;
+    const item = el(`<div class="card item">
+      <div class="row" style="justify-content:space-between">
+        <div>
+          <div class="meta">${escapeHtml(job.no)} · ${day(job.openedAt)}</div>
+          <h3>${escapeHtml(job.customer)}</h3>
+          <div class="meta">${escapeHtml(job.phone || "Telefon yok")}</div>
+          <div>${escapeHtml(job.device)} · ${escapeHtml([job.brand, job.model].filter(Boolean).join(" "))}</div>
+          <div class="muted" style="margin-top:4px">${escapeHtml(job.fault)}</div>
+        </div>
+        <span class="badge ${job.status==="teslim"?"":"warn"}">${st}</span>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <label class="block" style="min-width:100px"><span>İşçilik</span><input class="field" data-fee inputmode="numeric" value="${job.fee||0}"></label>
+        <label class="block" style="min-width:100px"><span>İndirim</span><input class="field" data-disc inputmode="numeric" value="${job.discount||0}"></label>
+        <div><div class="muted">Ödenecek</div><div class="money">${money(jobTotal(job))}</div></div>
+      </div>
+      <div class="row" style="margin-top:10px">
+        ${STATUSES.map(s=>`<button class="btn ${job.status===s.id?"accent":"line"}" data-st="${s.id}">${s.label}</button>`).join("")}
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn" data-form>Formu çıkar</button>
+        <button class="btn quiet" data-del>${armedDelete===job.id?"Silinsin mi?":"Sil"}</button>
+      </div>
+    </div>`);
+    item.querySelector("[data-fee]").onchange = (ev) => { job.fee = Math.max(0, Math.round(num(ev.target.value))); postJobCash(job); touch(); render(); };
+    item.querySelector("[data-disc]").onchange = (ev) => { job.discount = Math.max(0, Math.round(num(ev.target.value))); postJobCash(job); touch(); render(); };
+    item.querySelectorAll("[data-st]").forEach(btn => {
+      btn.onclick = () => { job.status = btn.getAttribute("data-st"); postJobCash(job); touch(); render(); };
+    });
+    item.querySelector("[data-form]").onclick = () => { formJobId = job.id; render(); };
+    item.querySelector("[data-del]").onclick = () => {
+      if (armedDelete !== job.id) { armedDelete = job.id; render(); return; }
+      state.entries = state.entries.filter(e => e.id !== job.cashId);
+      state.jobs = state.jobs.filter(j => j.id !== job.id);
+      armedDelete = null; touch(); render();
+    };
+    list.appendChild(item);
+  }
+  return root;
+}
+
+function serviceForm(job) {
+  const div = DIVISIONS.find(d => d.id === job.division)?.label || "";
+  const partsTotal = (job.lines || []).reduce((s, l) => s + l.price * l.qty, 0);
+  const gross = partsTotal + (job.fee || 0);
+  const rows = (job.lines || []).map((l, i) =>
+    `<tr><td>${i+1}</td><td>${escapeHtml(l.name)}</td><td class="right">${l.qty}</td><td class="right">${money(l.price)}</td><td class="right">${money(l.price*l.qty)}</td></tr>`
+  ).join("") + `<tr><td>${(job.lines||[]).length+1}</td><td>İşçilik</td><td class="right">1</td><td class="right">${money(job.fee||0)}</td><td class="right">${money(job.fee||0)}</td></tr>`;
+  const root = el(`<div>
+    <div class="sheet-actions no-print">
+      <button class="btn line" id="back">Listeye dön</button>
+      <button class="btn accent" id="print">Yazdır</button>
+    </div>
+    <div id="print-area" class="a4">
+      <img class="logo" src="logo.png" alt="Usta Teknik" />
+      <div class="a4-head">
+        <div>
+          <div class="muted" style="font-size:10px;text-transform:uppercase">Usta Teknik ve Elektronik</div>
+          <h2>Servis Faturası</h2>
+          <div style="font-size:11px">Garanti süresi: 6 ay (işçilik / yapılan işlem)</div>
+        </div>
+        <div class="a4-meta"><div><strong>Belge no</strong><br>${escapeHtml(job.no)}</div><div style="margin-top:6px"><strong>Tarih</strong><br>${day(job.openedAt)}</div></div>
+      </div>
+      <div class="a4-parties">
+        <div><div style="font-size:10px;font-weight:700;text-transform:uppercase">Satıcı</div><strong>Usta Teknik ve Elektronik</strong><br>Çanak anten · TV · Beyaz eşya · Güvenlik<br>${PHONES.join(" · ")}</div>
+        <div><div style="font-size:10px;font-weight:700;text-transform:uppercase">Alıcı</div><strong>${escapeHtml(job.customer)}</strong><br>${escapeHtml(job.phone||"—")}<br>${escapeHtml(job.address||"—")}</div>
+      </div>
+      <div class="a4-parties">
+        <div><div style="font-size:10px;font-weight:700;text-transform:uppercase">Cihaz</div>${escapeHtml(div)} · ${escapeHtml(job.device)}<br>${escapeHtml([job.brand,job.model].filter(Boolean).join(" ")||"—")}</div>
+        <div>
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase">Seri / aksesuar</div>
+          <input class="field" style="margin-top:4px" data-serial placeholder="Seri no" value="${escapeHtml(job.serial||"")}">
+          <input class="field" style="margin-top:4px" data-acc placeholder="Aksesuar" value="${escapeHtml(job.accessories||"")}">
+        </div>
+      </div>
+      <table><thead><tr><th>#</th><th>Mal / hizmet</th><th class="right">Miktar</th><th class="right">Birim</th><th class="right">Tutar</th></tr></thead><tbody>${rows}</tbody></table>
+      <div class="a4-total">
+        <p><span>Ara toplam</span><span>${money(gross)}</span></p>
+        <p><span>İndirim</span><span>${money(job.discount||0)}</span></p>
+        <p><span>Genel toplam</span><span>${money(jobTotal(job))}</span></p>
+      </div>
+      <div class="a4-note">
+        <strong>Arıza:</strong> ${escapeHtml(job.fault)}<br>
+        <strong>Yapılan işlem:</strong>
+        <textarea class="field" data-work style="margin-top:4px;min-height:60px" placeholder="Yapılan işlem">${escapeHtml(job.work||"")}</textarea>
+        <div style="margin-top:6px">Garanti süresi 6 aydır. Tutarlar TL. KDV dahil değildir.</div>
+      </div>
+      <div class="a4-signs"><div>Teslim eden</div><div>Müşteri imzası</div></div>
+      <div class="a4-foot">Güvenilir Servis · Profesyonel Çözüm · ${PHONES.join(" · ")}</div>
+    </div>
+  </div>`);
+  root.querySelector("#back").onclick = () => { formJobId = null; render(); };
+  root.querySelector("#print").onclick = () => window.print();
+  root.querySelector("[data-serial]").onchange = (e) => { job.serial = e.target.value; touch(); };
+  root.querySelector("[data-acc]").onchange = (e) => { job.accessories = e.target.value; touch(); };
+  root.querySelector("[data-work]").onchange = (e) => { job.work = e.target.value; postJobCash(job); touch(); };
+  return root;
+}
+
+function viewMusteri() {
+  const root = el(`<div>
+    <div class="card"><h2 style="margin:0 0 10px">Yeni müşteri</h2>
+      <form id="c-form" class="grid2">
+        <label class="block"><span>Ad</span><input class="field" name="name" required></label>
+        <label class="block"><span>Telefon</span><input class="field" name="phone" inputmode="tel"></label>
+        <label class="block" style="grid-column:1/-1"><span>Adres</span><input class="field" name="address"></label>
+        <div><button class="btn accent" type="submit">Müşteri ekle</button></div>
+      </form>
+    </div>
+    <div class="list" id="c-list"></div>
+  </div>`);
+  root.querySelector("#c-form").onsubmit = (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    state.customers.unshift({
+      id: uid(), name: String(fd.get("name")||"").trim(),
+      phone: String(fd.get("phone")||"").trim(), address: String(fd.get("address")||"").trim(),
+    });
+    touch(); render();
+  };
+  const list = root.querySelector("#c-list");
+  if (!state.customers.length) list.appendChild(el(`<div class="empty">Henüz müşteri yok.</div>`));
+  for (const c of state.customers) {
+    const openDebt = state.debts.filter(d => d.customerId === c.id && !d.paid).reduce((s, d) => s + d.amount, 0);
+    const item = el(`<div class="card item">
+      <div class="row" style="justify-content:space-between">
+        <div><h3>${escapeHtml(c.name)}</h3><div class="meta">${escapeHtml(c.phone||"Telefon yok")}</div><div class="meta">${escapeHtml(c.address||"")}</div></div>
+        <div class="right"><div class="muted">Açık borç</div><div class="money">${money(openDebt)}</div></div>
+      </div>
+      <form class="row" style="margin-top:10px" data-debt>
+        <input class="field" name="note" placeholder="Borç açıklaması" style="flex:1;min-width:120px">
+        <input class="field" name="amount" placeholder="Tutar" inputmode="numeric" style="width:110px" required>
+        <button class="btn line" type="submit">Borç ekle</button>
+        <button class="btn quiet" type="button" data-del>Sil</button>
+      </form>
+      <div data-debts style="margin-top:8px"></div>
+    </div>`);
+    item.querySelector("[data-debt]").onsubmit = (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const amount = Math.round(num(fd.get("amount")));
+      if (amount <= 0) return;
+      state.debts.unshift({ id: uid(), customerId: c.id, amount, note: String(fd.get("note")||"").trim(), at: new Date().toISOString(), paid: false });
+      touch(); render();
+    };
+    item.querySelector("[data-del]").onclick = () => {
+      state.customers = state.customers.filter(x => x.id !== c.id);
+      state.debts = state.debts.filter(d => d.customerId !== c.id);
+      touch(); render();
+    };
+    const box = item.querySelector("[data-debts]");
+    for (const d of state.debts.filter(x => x.customerId === c.id)) {
+      const row = el(`<div class="row" style="justify-content:space-between;font-size:.9rem;margin-top:4px">
+        <span>${d.paid?"Tahsil":"Borç"} · ${escapeHtml(d.note||"—")} · ${day(d.at)}</span>
+        <span class="row"><span class="money">${money(d.amount)}</span>
+          ${d.paid?"":`<button class="btn quiet" data-pay>Tahsil et</button>`}
+          <button class="btn quiet" data-drop>Sil</button></span>
+      </div>`);
+      const pay = row.querySelector("[data-pay]");
+      if (pay) pay.onclick = () => {
+        d.paid = true;
+        state.entries.unshift({ id: uid(), kind: "gelir", category: "Servis", title: `Tahsilat · ${c.name}${d.note?" · "+d.note:""}`, amount: d.amount, at: new Date().toISOString() });
+        touch(); render();
+      };
+      row.querySelector("[data-drop]").onclick = () => { state.debts = state.debts.filter(x => x.id !== d.id); touch(); render(); };
+      box.appendChild(row);
+    }
+    list.appendChild(item);
+  }
+  return root;
+}
+
+function viewKasa() {
+  const gelir = state.entries.filter(e => e.kind === "gelir").reduce((s, e) => s + e.amount, 0);
+  const gider = state.entries.filter(e => e.kind === "gider").reduce((s, e) => s + e.amount, 0);
+  const root = el(`<div>
+    <div class="grid2">
+      <div class="card"><div class="muted">Gelir</div><div class="money">${money(gelir)}</div></div>
+      <div class="card"><div class="muted">Gider</div><div class="money">${money(gider)}</div></div>
+      <div class="card" style="grid-column:1/-1"><div class="muted">Bakiye</div><div class="money" style="font-size:1.4rem">${money(gelir-gider)}</div></div>
+    </div>
+    <div class="card"><h2 style="margin:0 0 10px">Kasa hareketi</h2>
+      <form id="k-form" class="grid2">
+        <label class="block"><span>Tür</span><select class="field" name="kind"><option value="gelir">Gelir</option><option value="gider">Gider</option></select></label>
+        <label class="block"><span>Tutar</span><input class="field" name="amount" inputmode="numeric" required></label>
+        <label class="block" style="grid-column:1/-1"><span>Açıklama</span><input class="field" name="title" required></label>
+        <div><button class="btn accent" type="submit">Kaydet</button></div>
+      </form>
+    </div>
+    <div class="list" id="k-list"></div>
+  </div>`);
+  root.querySelector("#k-form").onsubmit = (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const amount = Math.round(num(fd.get("amount")));
+    if (amount <= 0) return;
+    state.entries.unshift({ id: uid(), kind: String(fd.get("kind")), category: "Genel", title: String(fd.get("title")||"").trim(), amount, at: new Date().toISOString() });
+    touch(); render();
+  };
+  const list = root.querySelector("#k-list");
+  if (!state.entries.length) list.appendChild(el(`<div class="empty">Kasa boş.</div>`));
+  for (const e of state.entries) {
+    const item = el(`<div class="card item row" style="justify-content:space-between">
+      <div><h3>${escapeHtml(e.title)}</h3><div class="meta">${e.kind==="gelir"?"Gelir":"Gider"} · ${day(e.at)}</div></div>
+      <div class="row"><div class="money">${e.kind==="gider"?"-":""}${money(e.amount)}</div><button class="btn quiet" data-del>Sil</button></div>
+    </div>`);
+    item.querySelector("[data-del]").onclick = () => {
+      state.entries = state.entries.filter(x => x.id !== e.id);
+      const job = state.jobs.find(j => j.cashId === e.id);
+      if (job) job.cashId = undefined;
+      touch(); render();
+    };
+    list.appendChild(item);
+  }
+  return root;
+}
+
+function viewTeklif() {
+  if (formQuoteId) {
+    const q = state.quotes.find(x => x.id === formQuoteId);
+    if (q) return quoteForm(q);
+  }
+  const root = el(`<div>
+    <div class="row" style="margin-bottom:12px"><button class="btn accent" id="newq">Yeni teklif</button></div>
+    <div class="list" id="q-list"></div>
+  </div>`);
+  root.querySelector("#newq").onclick = () => {
+    const q = {
+      id: uid(), no: nextQuoteNo(), customer: "", phone: "", address: "", place: "",
+      note: "Fiyatlara KDV dahil değildir.", validDays: 15, openedAt: new Date().toISOString(),
+      lines: [{ name: "Montaj işçiliği", qty: 1, price: 0 }],
+    };
+    state.quotes.unshift(q); formQuoteId = q.id; touch(); render();
+  };
+  const list = root.querySelector("#q-list");
+  if (!state.quotes.length) list.appendChild(el(`<div class="empty">Henüz teklif yok.</div>`));
+  for (const q of state.quotes) {
+    const total = q.lines.reduce((s, l) => s + l.qty * l.price, 0);
+    const item = el(`<div class="card item row" style="justify-content:space-between">
+      <div><h3>${escapeHtml(q.customer||"Müşteri yazılmadı")}</h3><div class="meta">${escapeHtml(q.no)} · ${day(q.openedAt)} · ${money(total)}</div></div>
+      <div class="row"><button class="btn line" data-open>Aç</button><button class="btn quiet" data-del>Sil</button></div>
+    </div>`);
+    item.querySelector("[data-open]").onclick = () => { formQuoteId = q.id; render(); };
+    item.querySelector("[data-del]").onclick = () => { state.quotes = state.quotes.filter(x => x.id !== q.id); touch(); render(); };
+    list.appendChild(item);
+  }
+  return root;
+}
+
+function quoteForm(q) {
+  const total = q.lines.reduce((s, l) => s + l.qty * l.price, 0);
+  const root = el(`<div>
+    <div class="sheet-actions no-print">
+      <button class="btn line" id="back">Listeye dön</button>
+      <button class="btn line" id="addline">Kalem ekle</button>
+      <button class="btn accent" id="print">Yazdır</button>
+    </div>
+    <div class="card no-print grid2">
+      <label class="block"><span>Müşteri</span><input class="field" data-c value="${escapeHtml(q.customer)}"></label>
+      <label class="block"><span>Telefon</span><input class="field" data-p value="${escapeHtml(q.phone)}"></label>
+      <label class="block"><span>Adres</span><input class="field" data-a value="${escapeHtml(q.address)}"></label>
+      <label class="block"><span>Montaj yeri</span><input class="field" data-pl value="${escapeHtml(q.place)}"></label>
+    </div>
+    <div id="print-area" class="a4">
+      <img class="logo" src="logo.png" alt="Usta Teknik" />
+      <div class="a4-head"><div><h2>Fiyat Teklif Formu</h2></div><div class="a4-meta"><strong>${escapeHtml(q.no)}</strong><br>${day(q.openedAt)}<br>${q.validDays} gün geçerli</div></div>
+      <div class="a4-parties">
+        <div><strong>Usta Teknik</strong><br>${PHONES.join(" · ")}</div>
+        <div><strong>${escapeHtml(q.customer||"—")}</strong><br>${escapeHtml(q.phone||"")}<br>${escapeHtml(q.address||"")}<br>${escapeHtml(q.place||"")}</div>
+      </div>
+      <table><thead><tr><th>#</th><th>Kalem</th><th class="right">Adet</th><th class="right">Birim</th><th class="right">Tutar</th></tr></thead><tbody id="qlines"></tbody></table>
+      <div class="a4-total"><p><span>Genel toplam</span><span>${money(total)}</span></p></div>
+      <div class="a4-note">${escapeHtml(q.note||"")}<br>Tutarlar TL. KDV dahil değildir.</div>
+      <div class="a4-signs"><div>Teklifi veren</div><div>Müşteri onayı</div></div>
+    </div>
+  </div>`);
+  const tbody = root.querySelector("#qlines");
+  q.lines.forEach((l, i) => {
+    const tr = el(`<tr>
+      <td>${i+1}</td>
+      <td><input class="field" data-n value="${escapeHtml(l.name)}"></td>
+      <td><input class="field right" data-q inputmode="numeric" value="${l.qty}"></td>
+      <td><input class="field right" data-pr inputmode="numeric" value="${l.price}"></td>
+      <td class="right">${money(l.qty*l.price)}</td>
+    </tr>`);
+    tr.querySelector("[data-n]").onchange = (e) => { l.name = e.target.value; touch(); };
+    tr.querySelector("[data-q]").onchange = (e) => { l.qty = Math.max(1, Math.round(num(e.target.value))); touch(); render(); };
+    tr.querySelector("[data-pr]").onchange = (e) => { l.price = Math.max(0, Math.round(num(e.target.value))); touch(); render(); };
+    tbody.appendChild(tr);
+  });
+  root.querySelector("#back").onclick = () => { formQuoteId = null; render(); };
+  root.querySelector("#print").onclick = () => window.print();
+  root.querySelector("#addline").onclick = () => { q.lines.push({ name: "", qty: 1, price: 0 }); touch(); render(); };
+  root.querySelector("[data-c]").onchange = (e) => { q.customer = e.target.value; touch(); };
+  root.querySelector("[data-p]").onchange = (e) => { q.phone = e.target.value; touch(); };
+  root.querySelector("[data-a]").onchange = (e) => { q.address = e.target.value; touch(); };
+  root.querySelector("[data-pl]").onchange = (e) => { q.place = e.target.value; touch(); };
+  return root;
+}
+
+async function enter() {
+  pin = document.getElementById("pin-input").value.trim();
+  const msg = document.getElementById("pin-msg");
+  msg.textContent = "Bağlanıyor…";
+  try {
+    await pull();
+    localStorage.setItem("usta-pin", pin);
+    document.getElementById("login-wrap").hidden = true;
+    document.getElementById("app").hidden = false;
+    render();
+  } catch (err) {
+    msg.textContent = err.message || "Giriş başarısız";
+  }
+}
+
+document.getElementById("pin-go").onclick = enter;
+document.getElementById("pin-input").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") enter();
+});
+
+setInterval(async () => {
+  if (!pin || document.getElementById("app").hidden || dirty || saving) return;
+  try {
+    const data = await api("GET");
+    if (data.updatedAt && data.updatedAt !== lastUpdatedAt) {
+      state = {
+        parts: data.parts || [], jobs: data.jobs || [], customers: data.customers || [],
+        debts: data.debts || [], entries: data.entries || [], quotes: data.quotes || [],
+        updatedAt: data.updatedAt,
+      };
+      lastUpdatedAt = data.updatedAt;
+      setSync("Ortak · güncellendi", "ok");
+      render();
+    }
+  } catch {}
+}, 5000);
+
+if (pin) {
+  document.getElementById("pin-input").value = pin;
+  enter();
+}
+</script>
+</body>
+</html>
